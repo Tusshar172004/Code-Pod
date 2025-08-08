@@ -39,6 +39,11 @@ const languageConfig = {
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.send("CodePod backend is live!");
+});
+
+
 const io = new Server(server, {
     cors: {
         origin: "https://code-pod-1.onrender.com",

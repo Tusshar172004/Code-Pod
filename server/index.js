@@ -36,11 +36,12 @@ const languageConfig = {
     r: { versionIndex: "3" },
 };
 
-app.use(cors());
-app.use(express.json());
+// Add these lines to serve your static files from the client's build directory
+app.use(express.static(path.join(__dirname, 'client/build')));
 
+// And modify the root route to serve the index.html file
 app.get("/", (req, res) => {
-  res.send("CodePod backend is live!");
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 

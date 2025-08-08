@@ -10,6 +10,9 @@ const axios = require("axios");
 const server = http.createServer(app);
 require("dotenv").config();
 
+// Add middleware to parse JSON bodies
+app.use(express.json());
+
 const peerServer = PeerServer({ port: 9000, path: "/myapp" });
 peerServer.on("connection", (client) => {
     console.log(`Peer connected: ${client.id}`);
@@ -36,15 +39,6 @@ const languageConfig = {
     rust: { versionIndex: "3" },
     r: { versionIndex: "3" },
 };
-
-// Add these lines to serve your static files from the client's build directory
-app.use(express.static(path.join(__dirname, 'client/build')));
-
-// And modify the root route to serve the index.html file
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-});
-
 
 const io = new Server(server, {
     cors: {
@@ -84,13 +78,11 @@ io.on("connection", (socket) => {
             });
         });
         
-        // If there's already code for this room, sync it to the new user.
         if (roomCodeMap[roomId]) {
             io.to(socket.id).emit(ACTIONS.SYNC_CODE, { code: roomCodeMap[roomId] });
         }
     });
     
-    // Manual sync button functionality
     socket.on(ACTIONS.SYNC_CODE, ({ roomId, code }) => {
       io.to(roomId).emit(ACTIONS.SYNC_CODE, { code });
       roomCodeMap[roomId] = code;
@@ -134,6 +126,7 @@ io.on("connection", (socket) => {
     });
 });
 
+// This API route must come BEFORE the static file serving middleware
 app.post("/compile", async (req, res) => {
     const { code, language } = req.body;
 
@@ -151,6 +144,15 @@ app.post("/compile", async (req, res) => {
         console.error(error);
         res.status(500).json({ error: "Failed to compile code" });
     }
+});
+
+// Serve the client's static files from the build directory
+app.use(express.static(path.join(__dirname, 'client/build')));
+
+// Add a catch-all route to serve the index.html file for any unmatched routes
+// This is essential for single-page applications.
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;

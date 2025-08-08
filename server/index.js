@@ -10,6 +10,9 @@ const axios = require("axios");
 const server = http.createServer(app);
 require("dotenv").config();
 
+// Add middleware to parse JSON bodies. This is crucial for the /compile route.
+app.use(express.json());
+
 const peerServer = PeerServer({ port: 9000, path: "/myapp" });
 peerServer.on("connection", (client) => {
     console.log(`Peer connected: ${client.id}`);
@@ -37,15 +40,6 @@ const languageConfig = {
     r: { versionIndex: "3" },
 };
 
-// Add these lines to serve your static files from the client's build directory
-app.use(express.static(path.join(__dirname, 'client/build')));
-
-// And modify the root route to serve the index.html file
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-});
-
-
 const io = new Server(server, {
     cors: {
         origin: "https://code-pod-1.onrender.com",
@@ -55,7 +49,7 @@ const io = new Server(server, {
 
 const userSocketMap = {};
 const userPeerMap = {};
-const roomCodeMap = {}; // To store the latest code for each room
+const roomCodeMap = {};
 
 const getAllConnectedClients = (roomId) => {
     return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
@@ -84,13 +78,11 @@ io.on("connection", (socket) => {
             });
         });
         
-        // If there's already code for this room, sync it to the new user.
         if (roomCodeMap[roomId]) {
             io.to(socket.id).emit(ACTIONS.SYNC_CODE, { code: roomCodeMap[roomId] });
         }
     });
     
-    // Manual sync button functionality
     socket.on(ACTIONS.SYNC_CODE, ({ roomId, code }) => {
       io.to(roomId).emit(ACTIONS.SYNC_CODE, { code });
       roomCodeMap[roomId] = code;
@@ -116,7 +108,7 @@ io.on("connection", (socket) => {
 
     socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
         socket.in(roomId).emit(ACTIONS.CODE_CHANGE, { code });
-        roomCodeMap[roomId] = code; // Store the latest code for the room
+        roomCodeMap[roomId] = code;
     });
     
     socket.on("disconnecting", () => {
@@ -134,6 +126,7 @@ io.on("connection", (socket) => {
     });
 });
 
+// This API route must be defined BEFORE the static file serving and catch-all routes.
 app.post("/compile", async (req, res) => {
     const { code, language } = req.body;
 
@@ -151,6 +144,15 @@ app.post("/compile", async (req, res) => {
         console.error(error);
         res.status(500).json({ error: "Failed to compile code" });
     }
+});
+
+// Serve the client's static files from the build directory.
+app.use(express.static(path.join(__dirname, 'client/build')));
+
+// **This is the new "catch-all" route.**
+// It serves your React app's index.html file for any request that doesn't match an earlier route.
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;

@@ -41,7 +41,7 @@ app.use(express.json());
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: "https://code-pod-1.onrender.com",
         methods: ["GET", "POST"],
     },
 });

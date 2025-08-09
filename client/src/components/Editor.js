@@ -52,7 +52,7 @@ function Editor({ socketRef, roomId, onCodeChange, code }) {
         editorRef.current.toTextArea();
       }
     };
-  }, []);
+  }, [code, onCodeChange, roomId, socketRef]);
 
   // This new useEffect listens for changes in the 'code' prop
   // and updates the editor's content.

@@ -13,7 +13,7 @@ require("dotenv").config();
 // Configure CORS for your API routes.
 // Make sure to replace 'https://your-frontend-domain.com' with the actual URL of your deployed frontend.
 // The same URL should be used in the Socket.io CORS configuration below.
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://your-frontend-domain.com';
+const FRONTEND_URL = 'https://code-pod-1.onrender.com';
 app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json());
 
@@ -127,7 +127,7 @@ io.on("connection", (socket) => {
 
         delete userSocketMap[socket.id];
         delete userPeerMap[socket.id];
-        socket.leave();
+ socket.leave();
     });
 });
 

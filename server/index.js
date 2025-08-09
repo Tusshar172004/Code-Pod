@@ -10,7 +10,9 @@ const axios = require("axios");
 const server = http.createServer(app);
 require("dotenv").config();
 
-// Add middleware to parse JSON bodies. This is crucial for the /compile route.
+// Configure CORS for your API routes.
+// Replace 'https://your-frontend-domain.com' with your actual frontend URL.
+app.use(cors({ origin: 'https://your-frontend-domain.com' }));
 app.use(express.json());
 
 const peerServer = PeerServer({ port: 9000, path: "/myapp" });
@@ -42,7 +44,8 @@ const languageConfig = {
 
 const io = new Server(server, {
     cors: {
-        origin: "https://code-pod-1.onrender.com",
+        // Replace 'https://your-frontend-domain.com' with your actual frontend URL.
+        origin: "https://your-frontend-domain.com",
         methods: ["GET", "POST"],
     },
 });
@@ -126,7 +129,6 @@ io.on("connection", (socket) => {
     });
 });
 
-// This API route must be defined BEFORE the static file serving and catch-all routes.
 app.post("/compile", async (req, res) => {
     const { code, language } = req.body;
 
@@ -146,14 +148,13 @@ app.post("/compile", async (req, res) => {
     }
 });
 
-// Serve the client's static files from the build directory.
+// Remove these lines as the frontend is now served separately.
+/*
 app.use(express.static(path.join(__dirname, 'client/build')));
-
-// **This is the new "catch-all" route.**
-// It serves your React app's index.html file for any request that doesn't match an earlier route.
 app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
+*/
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

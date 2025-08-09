@@ -11,10 +11,13 @@ const server = http.createServer(app);
 require("dotenv").config();
 
 // Configure CORS for your API routes.
-// Replace 'https://your-frontend-domain.com' with your actual frontend URL.
-app.use(cors({ origin: 'https://your-frontend-domain.com' }));
+// Make sure to replace 'https://your-frontend-domain.com' with the actual URL of your deployed frontend.
+// The same URL should be used in the Socket.io CORS configuration below.
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://your-frontend-domain.com';
+app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json());
 
+// The PeerJS server should be configured with the correct path
 const peerServer = PeerServer({ port: 9000, path: "/myapp" });
 peerServer.on("connection", (client) => {
     console.log(`Peer connected: ${client.id}`);
@@ -44,8 +47,7 @@ const languageConfig = {
 
 const io = new Server(server, {
     cors: {
-        // Replace 'https://your-frontend-domain.com' with your actual frontend URL.
-        origin: "https://your-frontend-domain.com",
+        origin: FRONTEND_URL,
         methods: ["GET", "POST"],
     },
 });
@@ -147,6 +149,12 @@ app.post("/compile", async (req, res) => {
         res.status(500).json({ error: "Failed to compile code" });
     }
 });
+
+// Since the frontend is deployed separately, these lines should be removed.
+// app.use(express.static(path.join(__dirname, 'client/build')));
+// app.get("*", (req, res) => {
+//     res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+// });
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

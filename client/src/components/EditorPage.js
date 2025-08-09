@@ -153,10 +153,12 @@ function EditorPage() {
       }
 
       peerRef.current = new Peer({
-        host: 'localhost',
-        port: 9000,
-        path: '/myapp'
-      });
+    // Replace hardcoded localhost with your backend URL
+    host: 'code-pod.onrender.com', 
+    secure: true, // Use 'true' for a production environment with HTTPS
+    port: 443,   // Standard port for HTTPS
+    path: '/myapp'
+});
 
       peerRef.current.on('open', (peerId) => {
         socketRef.current.emit(ACTIONS.JOIN, {
@@ -260,19 +262,20 @@ function EditorPage() {
   const runCode = async () => {
     setIsCompiling(true);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/compile`, {
-        code: code,
-        language: selectedLanguage,
-      });
-      setOutput(response.data.output || JSON.stringify(response.data));
-      setIsCompileWindowOpen(true);
+        // Ensure the axios call uses the correct backend URL
+        const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/compile`, {
+            code: code,
+            language: selectedLanguage,
+        });
+        setOutput(response.data.output || JSON.stringify(response.data));
+        setIsCompileWindowOpen(true);
     } catch (error) {
-      setOutput(error.response?.data?.error || "An error occurred");
-      setIsCompileWindowOpen(true);
+        setOutput(error.response?.data?.error || "An error occurred");
+        setIsCompileWindowOpen(true);
     } finally {
-      setIsCompiling(false);
+        setIsCompiling(false);
     }
-  };
+};
 
   const toggleCompileWindow = () => setIsCompileWindowOpen(!isCompileWindowOpen);
 

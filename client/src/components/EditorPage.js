@@ -152,12 +152,12 @@ function EditorPage() {
         myStreamRef.current = null;
       }
 
-      peerRef.current = new Peer({
-    // Replace hardcoded localhost with your backend URL
-    host: 'code-pod.onrender.com', 
-    secure: true, // Use 'true' for a production environment with HTTPS
-    port: 443,   // Standard port for HTTPS
-    path: '/myapp'
+     peerRef.current = new Peer({
+  // Use the backend URL from your environment variables
+  host: process.env.REACT_APP_BACKEND_URL.replace(/https?:\/\//, ''),
+  secure: true, // Use 'true' for HTTPS
+  port: 443,
+  path: '/myapp'
 });
 
       peerRef.current.on('open', (peerId) => {

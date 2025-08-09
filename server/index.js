@@ -46,10 +46,10 @@ const languageConfig = {
 };
 
 const io = new Server(server, {
-    cors: {
-        origin: FRONTEND_URL,
-        methods: ["GET", "POST"],
-    },
+  cors: {
+    origin: "https://code-pod-1.onrender.com", // ✅ frontend URL
+    methods: ["GET", "POST"],
+  },
 });
 
 const userSocketMap = {};
